@@ -1,0 +1,6 @@
+{
+    "azure":{
+        "hub_name": "batteryhub",
+        "device_id": "client-100001"
+    }
+}
