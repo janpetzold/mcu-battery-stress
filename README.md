@@ -27,7 +27,7 @@ These are the HW+SW components used here:
 6. [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blobs): Simple way to store uploaded data reliably for all kinds of further processing. I simply stored each message from the device as a JSON file. The way the [Azure samples from Pico LTE SDK](https://docs.sixfab.com/docs/sixfab-pico-lte-micropython-sdk) work is that they update the Device Twin in IoT Hub each time so a dedicated route had to be set up to actually store the data/see changes somewhere. See https://stackoverflow.com/a/47893851/675454.
 
 ## Setup
-Setup mainly follows the instrcuctions given here:
+Setup mainly follows the instructions given here:
 
 https://docs.sixfab.com/docs/sixfab-pico-lte-getting-started
 https://docs.sixfab.com/docs/pico-lte-azure-iot-hub-connection
@@ -37,6 +37,18 @@ So essentially everything below the `/python` directory is what I had on my devi
 My device had the issue that it was never able to connect to the MNO via LTE initially. I had to nuke the flash file once, afterwards connecting worked rather quickly and remained stable ever since:
 
 https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html#resetting-flash-memory
+
+## WiFi
+As fallback in case of missing LTE connectivity a WiFi-based solution was built, see the `emqx` subdirectory. This uses the public broker from https://www.emqx.com/en/mqtt/public-mqtt5-broker.
+
+For subscribing a simple Python script `subscriber.py` was added that stores all received messages in an Azure Blob Storage. This script should run as systemd service, see its definition there as well. To set it up (also for reboot):
+
+    sudo systemctl enable mqtt_subscriber.service
+    sudo systemctl start mqtt_subscriber.service
+
+Get the logs
+
+    sudo journalctl -u mqtt_subscriber.service -f
 
 ## Results
 So in theory that should be the cinsumption based on the numbers I found in the [datasheet](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf / https://docs.sixfab.com/docs/sixfab-pico-lte-technical-details):

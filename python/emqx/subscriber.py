@@ -2,11 +2,8 @@
 #
 # pip3 install paho-mqtt azure-storage-blob python-dotenv
 #
-# Make sure to open port 1883 on VM. Afterwards run on VM via
-#
-# nohup python3 subscriber.py &
-#
-# so it runs in the background even when closing/disconnecting a session
+# Make sure to open port 1883 on VM. Afterwards add it as systemd service (see README) so
+# it automatically runs in the background even when closing/disconnecting a session and rebooting
 #
 
 import paho.mqtt.client as mqtt
@@ -45,15 +42,15 @@ def on_message(client, userdata, msg):
     formatted_now = now.strftime("%Y-%m-%d-%H-%M")
     
     # Create the blob name using the formatted date and time
-    blob_name = f"{formatted_now}.json"
+    #blob_name = f"{formatted_now}.json"
     
     # Create a blob client using the local file name as the name for the blob
-    blob_client = container_client.get_blob_client(blob_name)
+    #blob_client = container_client.get_blob_client(blob_name)
 
-    print(f"Uploading to Azure Storage as blob: {blob_name}")
+    #print(f"Uploading to Azure Storage as blob: {blob_name}")
     
     # Upload the created file
-    blob_client.upload_blob(msg.payload)
+    #blob_client.upload_blob(msg.payload)
 
 # Create an MQTT client and attach our routines to it.
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
