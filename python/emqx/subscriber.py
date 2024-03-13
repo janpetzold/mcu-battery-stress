@@ -1,10 +1,10 @@
 # Needs install
 #
-# pip3 install paho-mqtt azure-storage-blob
+# pip3 install paho-mqtt azure-storage-blob python-dotenv
 #
-# Afterwards run on VM via
+# Make sure to open port 1883 on VM. Afterwards run on VM via
 #
-# nohup python subscribe.py &
+# nohup python3 subscriber.py &
 #
 # so it runs in the background even when closing/disconnecting a session
 #

@@ -11,7 +11,7 @@ from pico_lte.utils.status import Status
 from pico_lte.common import debug
 
 # Get this via "micropython-umqtt.simple2"
-from umqtt.simple2 import MQTTClient
+from umqtt.simple import MQTTClient
 
 debug.set_level(1)
 
@@ -47,7 +47,7 @@ temperature_c = 27 - (raw_temperature - 0.706) / 0.001721
 debug.info("Temperature is " + str(temperature_c) + "°C")
 
 debug.info("Getting GPS position (50m)")
-picoLTE.gps.turn_on(accuracy=1)
+picoLTE.gps.turn_on(accuracy=3)
 
 latitude = 0
 longitude = 0
@@ -77,11 +77,23 @@ wlan.active(True)
 
 ssid = 'SSID'
 password = 'PASSWORD'
+
+wifi_attempt_count = 0
+wifi_max_attempts = 50
+
+debug.info("Connecting to WiFi")
 wlan.connect(ssid, password)
 
-while wlan.isconnected() == False:
-    print('Waiting for connection...')
-    time.sleep(1)
+while not wlan.isconnected():
+    if wifi_attempt_count < wifi_max_attempts:
+        debug.debug("WiFi connection failed " + str(wifi_attempt_count+1) + " times, will try again...")
+        time.sleep(1)
+        wifi_attempt_count += 1
+    else:
+        debug.info("WiFi connection failed " + str(wifi_max_attempts) + " times, will restart after sleeping 5mins")
+        time.sleep(1)
+        machine.lightsleep(300000)
+        machine.reset()
 
 debug.info("Connection to WiFi successful")
 
@@ -117,3 +129,5 @@ machine.lightsleep(1200000)
 
 # After pausing reboot device to start cycle again
 machine.reset()
+
+
