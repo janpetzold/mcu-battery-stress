@@ -75,5 +75,5 @@ Maximum runtime: 30 hours
 | Scenario      | Runtime | # of messages received | Data consumption
 | ----------- | ----------- | ---- | --------
 | No Power saving | ~1760 minutes = 30h | 82 | 181kB (~2kB/message) |
-| Power saving approach 1 | TODO minutes | 123 | 123 |
+| Lightsleep WiFi | ~960min = 14h | 51 | - |
 | Power saving approach 2 | TODO minutes | 123 | 123 |
