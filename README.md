@@ -56,17 +56,20 @@ So in theory that should be the cinsumption based on the numbers I found in the 
 Raspberry Pico "normal": 25mA
 Raspberry Pico "Sleep": 0.39mA
 Raspberry Pico "Dormant": 0.18mA
-Pico LTE "max": 1.5A
-
-
-Pico LTE measuredtypical power consumption (boot, idle): 0,9W
-
-For the Sixfab board I did not find any numbers, here's what I measured:
-
-
-
+Sixfab Pico LTE "max": 1.5A
 
 See the major findings here:
+
+- Modem and GPS are not really reliable despite having dedicated antennas, sometimes reading GPS / getting LTE connection is a matter of seconds, sometimes it does not work after minutes. I could not really identify a pattern here, will have to make more tests outside
+- lightsleep/deepsleep did not really work on the Pico, the power consumption was around TODO but the system woke up rather randomly but not in the defined interval of 20 minutes
+- I got lightsleep to work be specifically shutting down WiFi and modem, deepsleep did not work then with a time expiration (as expected - wake-up from deepsleep usually only works via external signal)
+
+As a baseline see this power consumption numbers I measured with my own hardware
+
+| Scenario      | Raspberry Pi 4 | Raspberry Zero 2 WH | Sixfab Pico LTE
+| ----------- | ----------- | ---- | --------
+| Idle | TODO Ah | TODO Ah | TODO Ah |
+| Endless loop to stress CPU (`yes > /dev/null &`) | TODO Ah | TODO Ah | TODO Ah |
 
 Data consumption/week for one message every approx. 20 minutes (resulting in ~2150 status messages/week): TODO MB
 
