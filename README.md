@@ -51,18 +51,21 @@ Get the logs
     sudo journalctl -u mqtt_subscriber.service -f
 
 ## Results
-So in theory that should be the cinsumption based on the numbers I found in the [datasheet](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf / https://docs.sixfab.com/docs/sixfab-pico-lte-technical-details):
+So in theory that should be the consumption based on the numbers I found in the [datasheet](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf / https://docs.sixfab.com/docs/sixfab-pico-lte-technical-details):
 
-Raspberry Pico "normal": 25mA
+Raspberry Pico "normal": 25mA (so in theory using a 2500mAh battery the Pico should operate for 100 hours unoptimized)
 Raspberry Pico "Sleep": 0.39mA
 Raspberry Pico "Dormant": 0.18mA
 Sixfab Pico LTE "max": 1.5A
 
-See the major findings here:
+The impact of WiFi on/off and modem on/off was TODO.
+
+Beside that find the major findings here:
 
 - Modem and GPS are not really reliable despite having dedicated antennas, sometimes reading GPS / getting LTE connection is a matter of seconds, sometimes it does not work after minutes. I could not really identify a pattern here, will have to make more tests outside
-- lightsleep/deepsleep did not really work on the Pico, the power consumption was around TODO but the system woke up rather randomly but not in the defined interval of 20 minutes
-- I got lightsleep to work be specifically shutting down WiFi and modem, deepsleep did not work then with a time expiration (as expected - wake-up from deepsleep usually only works via external signal)
+- lightsleep/deepsleep did not really work out of the box on the Pico, the power consumption was around TODO but the system woke up rather randomly but not in the defined interval of 20 minutes
+- I got lightsleep to work be specifically shutting down WiFi and modem, modem I explicitly powered down via `AT+QPOWD=0` 
+- Deepsleep did not work with a time expiration (as expected - wake-up from deepsleep usually only works via external signal)
 
 As a baseline see this power consumption numbers I measured with my own hardware
 

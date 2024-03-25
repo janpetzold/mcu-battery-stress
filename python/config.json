@@ -2,5 +2,11 @@
     "azure":{
         "hub_name": "batteryhub",
         "device_id": "client-100001"
+    },
+    "mqtts":{
+          "host":"broker.emqx.io",
+          "port": 1883,
+          "pub_qos": 1,
+          "client_id": "client100001"
     }
 }
