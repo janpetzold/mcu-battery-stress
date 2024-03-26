@@ -1,18 +1,19 @@
 import json
 import network
 import time
-import ubinascii
 import machine
 
-from machine import RTC
 from machine import Pin
 from machine import Timer
 from pico_lte.core import PicoLTE
-from pico_lte.utils.status import Status
 from pico_lte.utils.atcom import ATCom
 from pico_lte.common import debug
 
-# Get this via "micropython-umqtt.simple2"
+import clock
+import temperature
+import location
+
+# Get this via "simple.umqtt"
 from umqtt.simple import MQTTClient
 
 debug.set_level(1)
@@ -20,55 +21,6 @@ debug.set_level(1)
 picoLTE = PicoLTE()
 atcom = ATCom()
 user_led = Pin(22, mode=Pin.OUT)
-
-def get_machine_id():
-    id = ubinascii.hexlify(machine.unique_id()).decode()
-    debug.info("Machine ID is " + id)
-    return id
-
-def get_current_time():
-    debug.debug("Getting current device time")
-    rtc = RTC()
-    year, month, day, _, hour, minute, second, _ = rtc.datetime()
-    # Format the timestamp as ISO8601 - this assumes the RTC is set to UTC time
-    return "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}Z".format(year, month, day, hour, minute, second)
-
-def get_temperature():
-    debug.debug("Getting temperature")
-    sensor_temp = machine.ADC(4)
-    conversion_factor = 3.3 / (65535)
-    raw_temperature = sensor_temp.read_u16() * conversion_factor
-
-    # Convert raw temperature to Celsius
-    temperature_c = 27 - (raw_temperature - 0.706) / 0.001721
-    debug.info("Temperature is " + str(temperature_c) + "°C")
-
-    return temperature_c
-
-def get_location():
-    debug.info("Getting GPS position (50m)")
-    picoLTE.gps.set_priority(0)
-    time.sleep(3)
-    picoLTE.gps.turn_on(accuracy=3)
-
-    for _ in range(0, 30):
-        result = picoLTE.gps.get_location()
-        debug.debug(result)
-
-        if result["status"] == Status.SUCCESS:
-            debug.debug("GPS fixed. Getting location data...")
-
-            loc = result.get("value")
-            debug.info("Latitude is " + str(loc[0]) + ", longitude " + str(loc[1]))
-            
-            picoLTE.gps.set_priority(1)
-            picoLTE.gps.turn_off()
-            return loc
-        time.sleep(2)  # 30*2 = 60 seconds timeout for GPS fix. Usually takes 5-25s for me.
-    picoLTE.gps.set_priority(1)
-    picoLTE.gps.turn_off()
-    debug.info("No GPS fix received")
-    return [0,0]
 
 def connect_lte():
     debug.debug("Registering network")
@@ -125,30 +77,24 @@ def stop_modem():
 def publish_message_lte(payload):
     debug.debug("Publishing data to EMQX MQTT broker via LTE")
     
-    topic = 'batteryhub/status'
-    
     try:
         picoLTE.mqtt.open_connection()
         picoLTE.mqtt.connect_broker()
         
-        picoLTE.mqtt.publish_message(payload, topic)
+        picoLTE.mqtt.publish_message(payload, 'batteryhub/status')
         return True
     except OSError as error:
         debug.critical("MQTT OS error (LTE)")
 
 def publish_message_wifi(payload):
     debug.debug("Publishing data to EMQX MQTT broker via WiFi")
-    
-    mqtt_broker = 'broker.emqx.io'
-    client_id = 'client100001'
-    topic = 'batteryhub/status'
 
     try:
-        client = MQTTClient(client_id, mqtt_broker)
+        client = MQTTClient('client100001', 'broker.emqx.io')
         client.connect()
-        debug.debug("Connected to broker " + mqtt_broker)
+        debug.debug("Connected to EMQX MQTT broker")
         client.publish(topic, payload)
-        debug.info("Message published to " + topic)
+        debug.info("Message published to " + 'batteryhub/status')
         client.disconnect()
         
         return True
@@ -180,6 +126,7 @@ def start_task_with_timeout(task, task_name, timeout_ms, *args, **kwargs):
     
     # Task finished before timeout
     timer.deinit()
+    
     debug.info("Task " + task_name + " finished before timeout")
     return returnVal
 
@@ -193,12 +140,14 @@ def run_all():
     
     user_led.value(1)
     
-    machine_id = get_machine_id()
-    current_time = get_current_time()
-    temperature = get_temperature()
+    machine_id = str(machine.unique_id().hex())
+    current_time = clock.get_current_time()
+    temperature_c = temperature.get_temperature()
+    
+    debug.info("Machine ID is " + machine_id + ", current time " + str(current_time) + ", temperature " + str(temperature_c))
 
     start_modem()
-    location = get_location()
+    loc = location.get_location()
     
     # First we try to connect via LTE
     lte_success = start_task_with_timeout(connect_lte, "lte", 90000)
@@ -215,19 +164,18 @@ def run_all():
     elapsed_time = end_time - start_time
     debug.info("Procedure execution time was " + str(elapsed_time) + "s")
     
-    payload_json = {"i": machine_id, "n": connect_network, "t": current_time, "c": str(temperature), "la": location[0], "lo": location[1], "e": elapsed_time}
+    payload_json = {"i": machine_id, "n": connect_network, "t": current_time, "c": str(temperature_c), "la": loc[0], "lo": loc[1], "e": elapsed_time}
     payload = json.dumps(payload_json)
     debug.info(payload)
     
     if(lte_success == True):
         lte_mqtt_success= start_task_with_timeout(publish_message_lte, "mqtt-publish-lte", 90000, payload)
-        stop_modem()
         
     if(wifi_success == True):
         wifi_mqtt_success = start_task_with_timeout(publish_message_wifi, "mqtt-publish-wifi", 60000, payload)
-        stop_modem()
         stop_wifi()
     
+    stop_modem()
     user_led.value(0)
     debug.info("Will sleep now")
     time.sleep(1)
