@@ -11,7 +11,9 @@ The sensor data that is transmitted is basically this JSON:
         "t": Timestamp of the device, 
         "c": Temperature read out by Pico, 
         "la": Current GPS latitude, 
-        "lo": Current GPS longitude
+        "lo": Current GPS longitude,
+        "e": Elapsed runtime of the script,
+        "n": Network connection type (LTE or WiFi)
     }
 
 The idea is that the device sends these values once every 20 minutes before sleeping & starting the cycle again (by rebooting).
@@ -31,6 +33,12 @@ Setup mainly follows the instructions given here:
 
 https://docs.sixfab.com/docs/sixfab-pico-lte-getting-started
 https://docs.sixfab.com/docs/pico-lte-azure-iot-hub-connection
+
+Beside that you need to install
+
+    umqtt.simple
+
+via Thonny.
 
 So essentially everything below the `/python` directory is what I had on my device. Of course your certificates will vary since you'll use your own IoT broker, the `/cert/user_key.pem` must be added anyway for the actual private key of the client.
 
