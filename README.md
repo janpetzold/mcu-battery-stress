@@ -66,6 +66,17 @@ Raspberry Pico "Sleep": 0.39mA
 Raspberry Pico "Dormant": 0.18mA
 Sixfab Pico LTE "max": 1.5A
 
+Some other numbers of similar boards I found [here](https://www.crowdsupply.com/dptechnics/walter)
+
+| Board      | Chip | Deep Sleep power consumption 
+| -----------| ---- | -----------
+| [Raspberry Pico](https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html) | RP2040 | 0.18mA
+| [Sixfab Pico LTE](https://sixfab.com/product/sixfab-pico-lte) | RP2040 | TODO  
+| [iLabs RP2040 Connectivity](https://ilabs.se/product/the-rp2040-connectivity-board/) | RP2040 | 0.26mA  
+| [Walter](https://www.crowdsupply.com/dptechnics/walter) | ESP32 | 0.009mA
+| [Pycom GPy](https://docs.pycom.io/datasheets/development/gpy/) | ESP32 | 0.017mA
+| [AVR IoT Mini](https://www.microchip.com/en-us/development-tool/ev70n78a) | ESP32 | 0.07mA
+
 The impact of WiFi on/off and modem on/off was TODO.
 
 Beside that find the major findings here:
