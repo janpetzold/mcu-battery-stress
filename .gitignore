@@ -1,3 +1,4 @@
 python/cert/user_key.pem
 python/.env
+python/tools/messages/*.json
 *.log
