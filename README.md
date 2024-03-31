@@ -81,9 +81,8 @@ The impact of WiFi on/off and modem on/off was TODO.
 
 Beside that find the major findings here:
 
-- Modem and GPS are not really reliable despite having dedicated antennas, sometimes reading GPS / getting LTE connection is a matter of seconds, sometimes it does not work after minutes. I could not really identify a pattern here, will have to make more tests outside
-- lightsleep/deepsleep did not really work out of the box on the Pico, the power consumption was around TODO but the system woke up rather randomly but not in the defined interval of 20 minutes
-- I got lightsleep to work be specifically shutting down WiFi and modem, modem I explicitly powered down via `AT+QPOWD=0` 
+- Modem and GPS are not really reliable despite having dedicated antennas, sometimes reading GPS / getting LTE connection is a matter of seconds, sometimes it does not work after minutes. This was better when outside.
+- lightsleep/deepsleep did not really work out of the box on the Sixfab Pico, the power consumption was around TODO but the system woke up rather randomly but not in the defined interval of 20 minutes. I got lightsleep to work be specifically shutting down WiFi and modem, modem I explicitly powered down via `AT+QPOWD=0` 
 - Deepsleep did not work with a time expiration (as expected - wake-up from deepsleep usually only works via external signal)
 
 As a baseline see this power consumption numbers I measured with my own hardware
@@ -95,10 +94,16 @@ As a baseline see this power consumption numbers I measured with my own hardware
 
 Data consumption/week for one message every approx. 20 minutes (resulting in ~2150 status messages/week): TODO MB
 
-Maximum runtime: 30 hours
+Maximum runtime: 94 hours
 
-| Scenario      | Runtime | # of messages received | Data consumption
-| ----------- | ----------- | ---- | --------
-| No Power saving | ~1760 minutes = 30h | 82 | 181kB (~2kB/message) |
-| Lightsleep WiFi | ~960min = 14h | 51 | - |
-| Power saving approach 2 | TODO minutes | 123 | 123 |
+| Device | Scenario      | Runtime | # of messages received | Message drop | Data consumption
+| ------ | ----------- | ----------- | ---- | --- | --------
+| Pico W | No Power saving | TODO | TODO | TODO | TODO |
+| Pico W | Lightsleep WiFi | TODO | TODO | - | TODO |
+| Pico W | Dormant WiFi | TODO | TODO | - | TODO |
+| Sixfab Pico | No Power saving | ~1760 minutes = 30h | 82 | ? | 181kB* |
+| Sixfab Pico | Lightsleep WiFi | ~960min = 14h | 51 | ? | - |
+| Sixfab Pico | Lightsleep LTE | ~5667min = 94h | 265 | 0 | 135kB* |
+| Sixfab Pico | Dormant LTE | TODO | TODO | TODO | TODO |
+
+* based on SIM statistics in Sixfab portal

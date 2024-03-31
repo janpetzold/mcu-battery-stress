@@ -26,10 +26,13 @@ for filename in files:
             merged_data.append({"timestamp": mod_time, "payload": content})
 
 # Path for the output file
-output_path = '/messages/messages.json'
+output_path = './messages/messages.json'
 
 # Write the merged data to a new JSON file
 with open(output_path, 'w', encoding='utf-8') as output_file:
     json.dump(merged_data, output_file, ensure_ascii=False, indent=4)
+
+# Move to subdirectory
+#os.rename("./messages.json", "./messages/messages.json")
 
 print(f"Merged JSON saved to {output_path}.")
