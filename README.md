@@ -25,8 +25,10 @@ These are the HW+SW components used here:
 2. [Powerboost 1000C Charger](https://www.adafruit.com/product/2465): Enables running the board via battery and also charge it while its running
 3. [LiPo battery with 2500 mAh and 3.7V](https://www.adafruit.com/product/328): Typical battery that is reasonably priced (~$15), fits into a case and should be able to power the RP2040 for a few days
 4. [Micropython](https://micropython.org/download/?mcu=rp2040): Easy to learn & build, definitely not  the most efficient language in the world but all tasks needed for this project can be built rather easily compared to C.
-5. [Azure IoT Hub](https://azure.microsoft.com/en-us/products/iot-hub): MQTT endpoint in the Cloud that I used primarily because I'm comfortable with Azure. Provides a free tier with max. 8000 messages/day which is more than enough. Other options like [MQTTHQ](https://mqtthq.com/) may be simpler and also worked for me.
-6. [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blobs): Simple way to store uploaded data reliably for all kinds of further processing. I simply stored each message from the device as a JSON file. The way the [Azure samples from Pico LTE SDK](https://docs.sixfab.com/docs/sixfab-pico-lte-micropython-sdk) work is that they update the Device Twin in IoT Hub each time so a dedicated route had to be set up to actually store the data/see changes somewhere. See https://stackoverflow.com/a/47893851/675454.
+5. [EMQX MQTT broker](https://www.emqx.com/en/mqtt/public-mqtt5-broker): MQTT endpoint in the Cloud that I used primarily because it is free, rather stable and easy to use. Other options like [MQTTHQ](https://mqtthq.com/) and [Azure IoT Hub](https://learn.microsoft.com/en-us/azure/iot-hub/) also worked for me.
+6. [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blobs): Simple way to store uploaded data reliably for all kinds of further processing. I simply stored each message from the device as a JSON file.
+
+It has to be mentioned that the Powerboost 1000C comes with an LED that is always on indicating that the battery works and this LED can't be turned off. So this will constantly consume something around 0.01A.
 
 ## Setup
 Setup mainly follows the instructions given here:
@@ -40,11 +42,7 @@ Beside that you need to install
 
 via Thonny.
 
-So essentially everything below the `/python` directory is what I had on my device. Of course your certificates will vary since you'll use your own IoT broker, the `/cert/user_key.pem` must be added anyway for the actual private key of the client.
-
-My device had the issue that it was never able to connect to the MNO via LTE initially. I had to nuke the flash file once, afterwards connecting worked rather quickly and remained stable ever since:
-
-https://www.raspberrypi.com/documentation/microcontrollers/raspberry-pi-pico.html#resetting-flash-memory
+So essentially everything below the `/python` directory is what I had on my device.
 
 ## WiFi
 As fallback in case of missing LTE connectivity a WiFi-based solution was built, see the `emqx` subdirectory. This uses the public broker from https://www.emqx.com/en/mqtt/public-mqtt5-broker.
@@ -61,7 +59,7 @@ Get the logs
 ## Results
 So in theory that should be the consumption based on the numbers I found in the [datasheet](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf / https://docs.sixfab.com/docs/sixfab-pico-lte-technical-details):
 
-Raspberry Pico "normal": 25mA (so in theory using a 2500mAh battery the Pico should operate for 100 hours unoptimized)
+Raspberry Pico "normal": 25mA (so in theory using a 2500mAh battery the Pico should operate for ~100 hours when idle and unoptimized)
 Raspberry Pico "Sleep": 0.39mA
 Raspberry Pico "Dormant": 0.18mA
 Sixfab Pico LTE "max": 1.5A
@@ -77,22 +75,25 @@ Some other numbers of similar boards I found [here](https://www.crowdsupply.com/
 | [Pycom GPy](https://docs.pycom.io/datasheets/development/gpy/) | ESP32 | 0.017mA
 | [AVR IoT Mini](https://www.microchip.com/en-us/development-tool/ev70n78a) | ESP32 | 0.07mA
 
-The impact of WiFi on/off and modem on/off was TODO.
-
 Beside that find the major findings here:
 
 - Modem and GPS are not really reliable despite having dedicated antennas, sometimes reading GPS / getting LTE connection is a matter of seconds, sometimes it does not work after minutes. This was better when outside.
 - lightsleep/deepsleep did not really work out of the box on the Sixfab Pico, the power consumption was around TODO but the system woke up rather randomly but not in the defined interval of 20 minutes. I got lightsleep to work be specifically shutting down WiFi and modem, modem I explicitly powered down via `AT+QPOWD=0` 
 - Deepsleep did not work with a time expiration (as expected - wake-up from deepsleep usually only works via external signal)
 
-As a baseline see this power consumption numbers I measured with my own hardware
+As a baseline see this power consumption numbers I measured with my own hardware. As reference / indication see values from a Raspberry Zero 2 here.
 
-| Scenario      | Raspberry Pi 4 | Raspberry Zero 2 WH | Sixfab Pico LTE
-| ----------- | ----------- | ---- | --------
-| Idle | TODO Ah | TODO Ah | TODO Ah |
-| Endless loop to stress CPU (`yes > /dev/null &`) | TODO Ah | TODO Ah | TODO Ah |
+|      | Sixfab Pico LTE | Raspberry Pi Zero 2 |
+| ---- | --------------- | ------------------- |
+| CPU type | µC ([RP2040 ARM Cortex-M0+](https://en.wikipedia.org/wiki/RP2040)) | µP ([ARM Cortex-A53 Quadcore](https://en.wikipedia.org/wiki/ARM_Cortex-A53)) |
+| Idle | 0.038A | 0.106A | 
+| High CPU load | 0.124A | 0.204A |
+| LTE modem connectivity | 0.053A | - | 
+| WiFi & LTE connectivity | 0.086A | 0.108A (WiFi only) |
+| Lightsleep mode | 0.022A | N/A |
+| Dormant mode | 0.014A | N/A |
 
-Data consumption/week for one message every approx. 20 minutes (resulting in ~2150 status messages/week): TODO MB
+For the script used to test this on the Sixfab Pico LTW see `tools/power-measurement.py`. The measurements were done with an [UM34](https://download.bastelgarage.ch/Produkte/User_Manual_UM34C.pdf) tester. Be aware that this device is far from accurate but values were deterministic & reproducible with slight variations.
 
 Maximum runtime: 94 hours
 
@@ -101,9 +102,10 @@ Maximum runtime: 94 hours
 | Pico W | No Power saving | TODO | TODO | TODO | TODO |
 | Pico W | Lightsleep WiFi | TODO | TODO | - | TODO |
 | Pico W | Dormant WiFi | TODO | TODO | - | TODO |
-| Sixfab Pico | No Power saving | ~1760 minutes = 30h | 82 | ? | 181kB* |
-| Sixfab Pico | Lightsleep WiFi | ~960min = 14h | 51 | ? | - |
-| Sixfab Pico | Lightsleep LTE | ~5667min = 94h | 265 | 0 | 135kB* |
-| Sixfab Pico | Dormant LTE | TODO | TODO | TODO | TODO |
+| Sixfab Pico LTE | No Power saving | ~1760 minutes = 30h | 82 | ? | 181kB* |
+| Sixfab Pico LTE | Lightsleep LTE | ~5667min = 94h | 265 | 0 | 135kB* |
+| Sixfab Pico LTE | Dormant LTE | TODO | TODO | TODO | TODO |
 
 * based on SIM statistics in Sixfab portal
+
+So summarized I could achieve approx. 100 hours runtime using my 2500mAh battery with `machine.lightsleep()` and the dedicated power management of WiFi and modem. Even longer runtimes could be done by using dormant mode (with external clock) and [directly connecting the battery to the 3.3V input to save the necessary power conversion of the USB 5V to the 3.3V internal power](https://forums.raspberrypi.com/viewtopic.php?t=309355). Also the PowerBoost 1000C could be replaced with something without a constantly active LED. I'd assume all these methods could increase runtime by approx. 20-40%.
