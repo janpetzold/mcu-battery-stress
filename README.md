@@ -93,7 +93,7 @@ As a baseline see this power consumption numbers I measured with my own hardware
 | Lightsleep mode | 0.022A | N/A |
 | Dormant mode | 0.014A | N/A |
 
-For the script used to test this on the Sixfab Pico LTW see `tools/power-measurement.py`. The measurements were done with an [UM34](https://download.bastelgarage.ch/Produkte/User_Manual_UM34C.pdf) tester. Be aware that this device is far from accurate but values were deterministic & reproducible with slight variations.
+For the script used to test this on the Sixfab Pico LTW see `tools/power-measurement.py`. The measurements were done with an [UM34](https://download.bastelgarage.ch/Produkte/User_Manual_UM34C.pdf) USB meter. Be aware that this device is far from accurate but values were deterministic & reproducible with slight variations. See how this looked like in practice in the `um34` folder.
 
 Maximum runtime: 94 hours
 
