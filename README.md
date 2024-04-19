@@ -83,15 +83,15 @@ Beside that find the major findings here:
 
 As a baseline see this power consumption numbers I measured with my own hardware. As reference / indication see values from a Raspberry Zero 2 here.
 
-|      | Sixfab Pico LTE | Raspberry Pi Zero 2 |
-| ---- | --------------- | ------------------- |
-| CPU type | µC ([RP2040 ARM Cortex-M0+](https://en.wikipedia.org/wiki/RP2040)) | µP ([ARM Cortex-A53 Quadcore](https://en.wikipedia.org/wiki/ARM_Cortex-A53)) |
-| Idle | 0.038A | 0.106A | 
-| High CPU load | 0.124A | 0.204A |
-| LTE modem connectivity | 0.053A | - | 
-| WiFi & LTE connectivity | 0.086A | 0.108A (WiFi only) |
-| Lightsleep mode | 0.022A | N/A |
-| Dormant mode | 0.014A | N/A |
+|      | Sixfab Pico LTE | Lolin32 | Raspberry Pi Zero 1 |
+| ---- | --------------- | ------------ | ------------------- |
+| CPU type | µC ([RP2040 ARM Cortex-M0+](https://en.wikipedia.org/wiki/RP2040)) |  µC (ESP32 Xtensa LX6) | µP ([ARM Cortex-A53 Quadcore](https://en.wikipedia.org/wiki/ARM_Cortex-A53)) |
+| Idle | 0.038A | 0.035A | 0.106A | 
+| High CPU load | 0.124A | TODO | 0.204A |
+| LTE modem connectivity | 0.053A | - | - | 
+| WiFi & LTE connectivity | 0.086A | TODO | 0.108A (WiFi only) |
+| Lightsleep mode | 0.022A | 0.005A | N/A |
+| Dormant mode | 0.014A | 0.003A | N/A |
 
 For the script used to test this on the Sixfab Pico LTW see `tools/power-measurement.py`. The measurements were done with an [UM34](https://download.bastelgarage.ch/Produkte/User_Manual_UM34C.pdf) USB meter. Be aware that this device is far from accurate but values were deterministic & reproducible with slight variations. See how this looked like in practice in the `um34` folder.
 
